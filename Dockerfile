@@ -2,6 +2,11 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+# KEY Deixe o Vite ler a env no build:
+ARG VITE_GEMINI_API_KEY
+ENV VITE_GEMINI_API_KEY=${VITE_GEMINI_API_KEY}
+
+
 # Manifestos + lockfiles
 COPY package.json ./
 COPY package-lock.json* ./
