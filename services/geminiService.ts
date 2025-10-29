@@ -3,6 +3,16 @@ import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 import { User, SpecialistType, Message } from '../types';
 import { SPECIALIST_PROMPTS } from '../constants';
 
+// 🔑 Fonte única da chave — funciona no Vite e não quebra em Node:
+const API_KEY =
+  (typeof import !== "undefined" && (import.meta as any)?.env?.VITE_GEMINI_API_KEY) ||
+  (typeof process !== "undefined" && process?.env?.API_KEY) ||
+  (globalThis as any)?.GEMINI_API_KEY || ""; // fallback opcional
+
+if (!API_KEY) {
+  throw new Error("Gemini API key ausente. Defina VITE_GEMINI_API_KEY no build.");
+}
+
 const generatePlan = async (user: User, feedback: string, specialist: SpecialistType): Promise<string> => {
     const specialistInfo = SPECIALIST_PROMPTS[specialist];
     // FIX: Removed check for placeholder API key as per @google/genai guidelines, which state the key should be assumed to be configured.
