@@ -19,8 +19,8 @@ const generatePlan = async (user: User, feedback: string, specialist: Specialist
 
     try {
         // FIX: Per @google/genai guidelines, instantiate GoogleGenAI with API key from process.env.
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
+        const ai = new GoogleGenAI({ apiKey: API_KEY });
+  
         const prompt = `
         **Dados do Usuário:**
         - Nome: ${user.name}
@@ -72,7 +72,7 @@ export const getSpecialistChatResponse = async (user: User, history: Message[], 
     
     try {
         // FIX: Per @google/genai guidelines, instantiate GoogleGenAI with API key from process.env.
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: API_KEY });
         
         let specialistKey: SpecialistType;
 
