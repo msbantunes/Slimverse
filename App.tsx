@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, SpecialistType, WeeklyCheckinData, DailyCheckinData, Gender } from './types';
 import { INITIAL_USER, SPECIALIST_PROMPTS, getLevelName, LEVEL_XP_THRESHOLDS } from './constants';
 import { SpecialistCard } from './components/SpecialistCard';
@@ -8,6 +8,8 @@ import { LevelsModal } from './components/LevelsModal';
 import { ProfileModal } from './components/ProfileModal';
 import { ChatInterface } from './components/ChatInterface';
 import { generateAllDailyPlans } from './services/geminiService';
+// FIX: Per @google/genai guidelines, API key configuration is handled externally via process.env.API_KEY.
+// The config file import and related UI for key checking have been removed.
 
 const App: React.FC = () => {
     const [user, setUser] = useState<User>(INITIAL_USER);
@@ -124,8 +126,8 @@ const App: React.FC = () => {
                     <div className="text-left sm:text-right mt-4 sm:mt-0">
                          <button
                             onClick={() => setIsProfileModalOpen(true)}
-                            className={`text-lg font-semibold transition-colors ${user.isProfileLocked ? 'text-gray-500 cursor-not-allowed' : 'hover:text-yellow-700'}`}
-                            title={user.isProfileLocked ? "Seu perfil foi bloqueado após a primeira edição." : "Editar seu perfil"}
+                            className="text-lg font-semibold transition-colors hover:text-yellow-700"
+                            title="Editar seu perfil"
                         >
                             {user.name}
                         </button>

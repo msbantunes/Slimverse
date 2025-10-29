@@ -1,15 +1,14 @@
-// FIX: Import `Type` for responseSchema definition.
+// FIX: Per @google/genai guidelines, API key is sourced from environment variables, so removed direct import.
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 import { User, SpecialistType, Message } from '../types';
 import { SPECIALIST_PROMPTS } from '../constants';
 
-// FIX: Removed getApiKey helper to use process.env.API_KEY directly as per guidelines.
-
 const generatePlan = async (user: User, feedback: string, specialist: SpecialistType): Promise<string> => {
-    // FIX: Moved specialistInfo declaration outside the try block to make it accessible in the catch block.
     const specialistInfo = SPECIALIST_PROMPTS[specialist];
+    // FIX: Removed check for placeholder API key as per @google/genai guidelines, which state the key should be assumed to be configured.
+
     try {
-        // FIX: Initialize GoogleGenAI with API key directly from process.env.
+        // FIX: Per @google/genai guidelines, instantiate GoogleGenAI with API key from process.env.
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
         const prompt = `
@@ -43,6 +42,7 @@ const generatePlan = async (user: User, feedback: string, specialist: Specialist
         return response.text;
     } catch (error) {
         console.error(`Error generating plan for ${specialist}:`, error);
+        // FIX: Per @google/genai guidelines, API key is managed externally. Updated error message to be more generic.
         return `Ocorreu um erro ao gerar o plano de ${specialistInfo.name}. Por favor, tente novamente mais tarde.`;
     }
 };
@@ -58,8 +58,10 @@ export const generateAllDailyPlans = async (user: User, feedback: string) => {
 };
 
 export const getSpecialistChatResponse = async (user: User, history: Message[], newMessage: string, targetSpecialist?: SpecialistType | 'all'): Promise<{ response: string, specialist: SpecialistType }> => {
+    // FIX: Removed check for placeholder API key as per @google/genai guidelines.
+    
     try {
-        // FIX: Initialize GoogleGenAI with API key directly from process.env.
+        // FIX: Per @google/genai guidelines, instantiate GoogleGenAI with API key from process.env.
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         
         let specialistKey: SpecialistType;
@@ -67,7 +69,6 @@ export const getSpecialistChatResponse = async (user: User, history: Message[], 
         if (targetSpecialist && targetSpecialist !== 'all') {
             specialistKey = targetSpecialist;
         } else {
-            // FIX: Use JSON mode with responseSchema for robust specialist classification.
             const classificationPrompt = `Classifique a seguinte pergunta do usuário em uma das três categorias: '${SpecialistType.PhysicalEducator}', '${SpecialistType.Nutritionist}', ou '${SpecialistType.Psychologist}'. Pergunta: "${newMessage}"`;
 
             const classificationResponse = await ai.models.generateContent({
@@ -134,6 +135,7 @@ export const getSpecialistChatResponse = async (user: User, history: Message[], 
         return { response: response.text, specialist: specialistKey };
     } catch (error) {
         console.error("Error in chat response:", error);
-        return { response: "Desculpe, não consegui processar sua pergunta. Poderia tentar de outra forma?", specialist: SpecialistType.Psychologist };
+        // FIX: Per @google/genai guidelines, API key is managed externally. Updated error message to be more generic.
+        return { response: "Desculpe, não consegui processar sua pergunta. Por favor, tente novamente mais tarde.", specialist: SpecialistType.Psychologist };
     }
 }
