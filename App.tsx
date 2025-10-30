@@ -44,33 +44,52 @@ const App: React.FC = () => {
         try {
             const newWeight = parseFloat(data.weight);
             const newWaist = parseFloat(data.waist);
-            
+
             setUser(prevUser => {
-                const updatedHistory = [
-                    { date: new Date().toISOString().split('T')[0], weight: newWeight, waist: newWaist },
-                    ...prevUser.history,
-                ].slice(0, 10);
+            const updatedHistory = [
+                { date: new Date().toISOString().split('T')[0], weight: newWeight, waist: newWaist },
+                ...prevUser.history,
+            ].slice(0, 10);
 
-                const totalWeightLoss = prevUser.initialWeight - newWeight;
+            // ---------- PESO ----------
+            const totalLevels = 27;
+            const initialW = prevUser.initialWeight;
+            const goalW = prevUser.weightGoal;
+            const weightDeltaNeed = Math.max(0, initialW - goalW); // quanto precisa perder
+            const weightStep = weightDeltaNeed > 0 ? weightDeltaNeed / (totalLevels - 1) : Infinity;
+            const weightLoss = Math.max(0, initialW - newWeight); // quanto já perdeu
+            const weightLevel = !isFinite(weightStep)
+                ? 1
+                : Math.min(totalLevels, Math.floor(weightLoss / weightStep) + 1);
 
-                const initialRecord = updatedHistory[updatedHistory.length - 1];
-                const totalWaistLoss = initialRecord.waist - newWaist;
+            // ---------- CINTURA ----------
+            const height = prevUser.height; // em cm
+            const initialWaistRatio = prevUser.initialWaistRatio ?? (newWaist / height);
+            const targetRatio = 0.5;
+            const ratioDeltaNeed = Math.max(0, initialWaistRatio - targetRatio);
+            const ratioStep = ratioDeltaNeed > 0 ? ratioDeltaNeed / (totalLevels - 1) : Infinity;
 
-                const newXP = Math.max(0, Math.floor(totalWeightLoss) + Math.floor(totalWaistLoss / 2));
-                
-                const newLevelValue = LEVEL_XP_THRESHOLDS.filter(xp => newXP >= xp).length;
-                const newLevel = Math.max(1, Math.min(newLevelValue, 27));
+            const currentRatio = newWaist / height;
+            const ratioGain = Math.max(0, initialWaistRatio - currentRatio);
+            const waistLevel = !isFinite(ratioStep)
+                ? 1
+                : Math.min(totalLevels, Math.floor(ratioGain / ratioStep) + 1);
+
+            // ---------- RESULTADO FINAL ----------
+            const newLevel = Math.max(weightLevel, waistLevel);
+            const xpFromLevel = (newLevel - 1) * 5;
 
                 return {
                     ...prevUser,
                     weight: newWeight,
                     waist: newWaist,
-                    level: newLevel,
-                    xp: newXP,
                     history: updatedHistory,
+                    initialWaistRatio: prevUser.initialWaistRatio ?? initialWaistRatio, // salva baseline
+                    level: newLevel,
+                    xp: xpFromLevel,
                 };
             });
-            
+
             setIsWeeklyModalOpen(false);
         } catch (error) {
             console.error("Failed to process weekly check-in:", error);
@@ -79,39 +98,37 @@ const App: React.FC = () => {
         }
     };
 
-    const handleProfileSave = (updatedData: { name: string; dob: string; gender: Gender; height: number; weightGoal: number; initialWeight: number; }) => {
-        if (user.isProfileLocked) {
-            setIsProfileModalOpen(false);
+
+//
+    const handleProfileSave = (updatedData: {
+        name: string;
+        dob: string;
+        gender: Gender;
+        height: number;
+        weightGoal: number;
+        initialWeight: number;
+        }) => {
+            if (user.isProfileLocked) {
+                setIsProfileModalOpen(false);
             return;
-        }
+            }
 
         const confirmation = window.confirm(
-            "Você tem certeza que deseja salvar estas informações? Após salvar pela primeira vez, seu perfil será bloqueado para edições futuras para garantir a consistência da sua jornada."
+            "Você tem certeza que deseja salvar estas informações? Após salvar pela primeira vez, seu perfil será bloqueado para garantir consistência da sua jornada."
         );
 
         if (confirmation) {
-            setUser(prevUser => {
-                const totalWeightLoss = updatedData.initialWeight - prevUser.weight;
-                
-                const initialRecord = prevUser.history.length > 0 ? prevUser.history[prevUser.history.length - 1] : { waist: prevUser.waist };
-                const totalWaistLoss = initialRecord.waist - prevUser.waist;
-
-                const newXP = Math.max(0, Math.floor(totalWeightLoss) + Math.floor(totalWaistLoss / 2));
-                const newLevelValue = LEVEL_XP_THRESHOLDS.filter(xp => newXP >= xp).length;
-                const newLevel = Math.max(1, Math.min(newLevelValue, 27));
-
-                return {
-                    ...prevUser,
-                    ...updatedData,
-                    xp: newXP,
-                    level: newLevel,
-                    isProfileLocked: true, // Lock the profile
-                };
-            });
+            setUser(prevUser => ({
+            ...prevUser,
+            ...updatedData,
+            level: 1,              // sempre começa no nível 1
+            xp: 0,
+            isProfileLocked: true, // trava o perfil
+            }));
             setIsProfileModalOpen(false);
         }
     };
-
+//
     const levelName = getLevelName(user.level, user.gender);
     const canViewLevels = user.history.length > 0;
 
