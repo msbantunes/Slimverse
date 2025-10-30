@@ -5,9 +5,10 @@ import { SPECIALIST_PROMPTS } from '../constants';
 
 // 🔑 Fonte única da chave — funciona no Vite e não quebra em Node:
 const API_KEY =
-  (typeof import !== "undefined" && (import.meta as any)?.env?.VITE_GEMINI_API_KEY) ||
-  (typeof process !== "undefined" && process?.env?.API_KEY) ||
-  (globalThis as any)?.GEMINI_API_KEY || ""; // fallback opcional
+  (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_GEMINI_API_KEY) ||
+  (typeof process !== "undefined" && (process as any)?.env?.API_KEY) ||
+  (globalThis as any)?.GEMINI_API_KEY ||"";
+// fallback opcional
 
 if (!API_KEY) {
   throw new Error("Gemini API key ausente. Defina VITE_GEMINI_API_KEY no build.");
