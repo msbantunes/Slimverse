@@ -72,7 +72,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
                 gender,
                 height: h,
                 initialWeight: iWeight,
-                weightGoal: goal
+                weightGoal: goal,
+                isProfileLocked: true //  adiciona o bloqueio aqui
             });
         }
     };
